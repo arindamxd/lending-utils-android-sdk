@@ -373,3 +373,6 @@ Descriptions of the error codes returned in the callback are given here.
 |101|Inadequate FB Permissions|Occurs when the user has not provided minimum permissions(user_photos, public_profile) in Facebook login|Try Facebook login again|
 |102|Facebook login cancelled by user|Occurs when user clicks on the cancel button in the Facebook login page|Try again|
 |103|Facebook login failed|Occurs when error is returned by Facebook |Analyze the error message|
+
+### Contact Us
+If you are interested in integrating this SDK, please do send us a mail at contact@hyperverge.co explaining your use case. We will give you the appId, appKey, aws_access_key & aws_secret_pass so that you can try it out.
