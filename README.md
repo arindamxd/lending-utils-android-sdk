@@ -100,22 +100,13 @@ HVLendingUtils is HyperVerge's proprietary android Utilities Framework for banki
 ```
 dependencies {
     compile('co.hyperverge:hv-lending-utils:1.0.0@aar', {
-	    transitive=true
-	})
+    	transitive=true
+    })
 }
 
 ```
 
-  
-
 - Add the following set of lines to the Project (top-level) `build.gradle`
-
-  
-
-  
-
-  
-
 ```
 allprojects {
     repositories {
@@ -182,31 +173,11 @@ Kindly contact HyperVerge at contact@hyperverge.co for getting your `aws_access_
 
 - Click Save Changes at the bottom of the App Dashboard window.
 
-  
-
-  
-
-  
-
-  
-
-  
-
-#### Presenting theActivity:
-
-  
-
-  
-
-  
+#### Presenting theActivity:  
 
 All interactions with the Facebook module and the corresponding HyperVerge server call for face match happens from an Activity called `HVFBActivity`.
 
-  
-
 To present the activity, call the `start` method of `HVFBActivity`(or its subclass). The variables in the following example code are described below:
-
-  
 
 ```
 HVFBActivity.start(this,HVFBActivity.class, imageUri, completionHook,
@@ -222,83 +193,35 @@ appId,appKey, new HVFBActivity.HVFBCallback() {
 });
 ```
 
-  
-
-  
-
-  
-
 ##### Parameters
-
-  
 
 These are the parameters to be set in `start` method:
 
-  
-
-  
-
-  
-
 - imageUri (String): Local file path of the face image to be used for face match.
-
-  
 
 - completionHook (String) - optional: The url which should be hit with results of face match and other facebook profile details. If this is set to `null` or is an empty string, the results will be returned in the onComplete method of HVFBCallback instead.
 
-  
-
 - appId (String): Given by HyperVerge
-
-  
 
 - appKey (String): Given by HyperVerge
 
-  
-
 - HVFBCallback - It is a callback with one method - `onComplete`. It is called when the facebook login and our processing is successful or when an error has occured in either of the steps. The values of `error` and  `result` received by the callback determine whether the call was a success or failure.
 
-  
-
 The `onComplete` method has two parameters.
-
-  
-
 - error: It is of type `HVOperationError`. It has an error code and an error message. The various error codes are described later. It is set to `null` if the whole process is successful.
-
-  
-
 - result: It is of type `JSONObject`. It has results of the server call. It is `null` when there is an error. If the `completionHook` is set, the result would be an empty Json Object. Otherwise it contains the results of the profile verification. The result structure and the payload structure for the completion hook are discussed later.
-
-  
-
-  
 
 #### Customizing HVFBActivity View
 
-  
-
 `HVFBActivity` has a simple progress bar at the center of the view. If any customization is required, you could inherit this Activity and add your own UI elements to it and replace `HVFBActivity` in  the argument `HVFBActivity.class` with the subclass' name (all the other fields will be the same).
 
-  
-
 ```
-
-HVFBActivity.start(this,MyCustomActivity.class, imageUri, completionHook,
-
-appId,appKey, new HVFBActivity.HVFBCallback() {
-
+HVFBActivity.start(this,MyCustomActivity.class, imageUri, completionHook, appId,appKey, new HVFBActivity.HVFBCallback() {
 	...
-
 });
-
 ```
-
-  
-
 where `MyCustomActivity` is a subclass of `HVFBActivity`
 
-  
 #### Completion Hook Payload Structure
 If completionHook is passed with the start method, then a POST request with JSON payload will be made by the HyperVerge server to the hook url with the result of the Facebook profile verification and other profile information. The payload for this request will have following structure:
 
