@@ -99,7 +99,7 @@ HVLendingUtils is HyperVerge's proprietary android Utilities Framework for banki
 
 ```
 dependencies {
-    compile('co.hyperverge:hv-lending-utils:1.0.0@aar', {
+    compile('co.hyperverge:hv-lending-utils:1.0.1@aar', {
     	transitive=true
     })
 }
@@ -216,7 +216,7 @@ The `onComplete` method has two parameters.
 `HVFBActivity` has a simple progress bar at the center of the view. If any customization is required, you could inherit this Activity and add your own UI elements to it and replace `HVFBActivity` in  the argument `HVFBActivity.class` with the subclass' name (all the other fields will be the same).
 
 ```
-HVFBActivity.start(this,MyCustomActivity.class, imageUri, completionHook, appId,appKey, new HVFBActivity.HVFBCallback() {
+MyCustomActivity.start(this,MyCustomActivity.class, imageUri, completionHook, appId,appKey, new HVFBActivity.HVFBCallback() {
 	...
 });
 ```
