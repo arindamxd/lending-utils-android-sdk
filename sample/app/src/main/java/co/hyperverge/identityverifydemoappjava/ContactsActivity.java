@@ -47,7 +47,7 @@ public class ContactsActivity extends AppCompatActivity {
         dialog.show();
 
 
-        HVContactManager.start(this, "", "", HVUtils.Countries.INDIA, new HVContactManager.HVContactCallback() {
+        HVContactManager.start(this, "", "", HVUtils.Countries.VIETNAM, new HVContactManager.HVContactCallback() {
             @Override
             public void onComplete(HVOperationError error, JSONObject results) {
                 if (error == null) {
