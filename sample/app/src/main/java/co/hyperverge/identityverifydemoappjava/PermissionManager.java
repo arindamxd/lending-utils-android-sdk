@@ -1,54 +1,161 @@
 package co.hyperverge.identityverifydemoappjava;
 
-        import android.app.Activity;
-        import android.support.v4.app.ActivityCompat;
-        import android.widget.Toast;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.widget.Toast;
 
-        import java.util.ArrayList;
-
-/**
- * Created by sanchit on 08/08/17.
- */
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PermissionManager {
 
-    public static void checkAndGetPermission(Activity activity, String missingPermission, int requestId){
-        // Assume thisActivity is the current activity
+    private Activity activity;
 
-        ArrayList<String> toBeRequestedPermissions = new ArrayList<>();
-        ArrayList<String> rationalePermissions = new ArrayList<>();
-            if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                    missingPermission)) {
 
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-                rationalePermissions.add(missingPermission);
-
-            } else {
-
-                // No explanation needed, we can request the permission.
-                toBeRequestedPermissions.add(missingPermission);
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
+    public boolean checkAndRequestPermissions(Activity activity) {
+        this.activity = activity;
+        if (Build.VERSION.SDK_INT >= 23) {
+            List<String> listPermissionsNeeded = setPermission();
+            List<String> listPermissionsAssign = new ArrayList<>();
+            for (String per : listPermissionsNeeded) {
+                if (ContextCompat.checkSelfPermission(activity.getApplicationContext(), per) != PackageManager.PERMISSION_GRANTED) {
+                    listPermissionsAssign.add(per);
+                }
             }
 
-
-        if(toBeRequestedPermissions.size() > 0) {
-            ActivityCompat.requestPermissions(activity,
-                    toBeRequestedPermissions.toArray(new String[0]),
-                    requestId);
+            if (!listPermissionsAssign.isEmpty()) {
+                ActivityCompat.requestPermissions(activity, listPermissionsAssign.toArray(new String[listPermissionsAssign.size()]), 1212);
+                return false;
+            }
         }
-        if(rationalePermissions.size() > 0){
-            String permissionsTxt = "";
-            for(String perm: rationalePermissions){
-                String[] permSplit = perm.split("\\.");
-                permissionsTxt += permSplit[permSplit.length - 1] + ", ";
-            }
+        return true;
+    }
 
-            permissionsTxt = permissionsTxt.substring(0, permissionsTxt.length() - 2);
-            Toast.makeText(activity, "Please give " + permissionsTxt + " permissions by going to Settings", Toast.LENGTH_LONG).show();
+    public ArrayList<statusArray> getStatus() {
+        ArrayList<statusArray> statusPermission = new ArrayList<>();
+        ArrayList<String> grant = new ArrayList<>();
+        ArrayList<String> deny = new ArrayList<>();
+        List<String> listPermissionsNeeded = setPermission();
+        for (String per : listPermissionsNeeded) {
+            if (ContextCompat.checkSelfPermission(activity.getApplicationContext(), per) == PackageManager.PERMISSION_GRANTED) {
+                grant.add(per);
+            } else {
+                deny.add(per);
+            }
+        }
+        statusArray stat = new statusArray(grant, deny);
+        statusPermission.add(stat);
+        return statusPermission;
+    }
+
+    public List<String> setPermission() {
+        List<String> per = new ArrayList<>();
+        try {
+            PackageManager pm = activity.getApplicationContext().getPackageManager();
+            PackageInfo pi = pm.getPackageInfo(activity.getApplicationContext().getPackageName(), PackageManager.GET_PERMISSIONS);
+            String permissionInfo[] = pi.requestedPermissions;
+            for (String p : permissionInfo) {
+                per.add(p);
+            }
+        } catch (Exception e) {
+
+        }
+        return per;
+    }
+
+    public void checkResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case 1212: {
+                List<String> listPermissionsNeeded = setPermission();
+                Map<String, Integer> perms = new HashMap<>();
+                for (String permission : listPermissionsNeeded) {
+                    perms.put(permission, PackageManager.PERMISSION_GRANTED);
+                }
+                if (grantResults.length > 0) {
+                    for (int i = 0; i < permissions.length; i++)
+                        perms.put(permissions[i], grantResults[i]);
+                    boolean isAllGranted = true;
+                    for (String permission : listPermissionsNeeded) {
+                        if (perms.get(permission) == PackageManager.PERMISSION_DENIED) {
+                            isAllGranted = false;
+                            break;
+                        }
+                    }
+                    if (isAllGranted) {
+
+                    } else {
+                        boolean shouldRequest = false;
+                        for (String permission : listPermissionsNeeded) {
+                            if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
+                                shouldRequest = true;
+                                break;
+                            }
+                        }
+                        if (shouldRequest) {
+                            ifCancelledAndCanRequest(activity);
+                        } else {
+                            ifCancelledAndCannotRequest(activity);
+                        }
+                    }
+                }
+            }
         }
     }
+
+    public void ifCancelledAndCanRequest(final Activity activity) {
+
+        showDialogOK(activity, "Permission required for this app, please grant permission for the same",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case DialogInterface.BUTTON_POSITIVE:
+                                checkAndRequestPermissions(activity);
+                                break;
+                            case DialogInterface.BUTTON_NEGATIVE:
+                                // proceed with logic by disabling the related features or quit the app.
+
+                                break;
+                        }
+                    }
+                });
+    }
+
+    public void ifCancelledAndCannotRequest(Activity activity) {
+        Toast.makeText(activity.getApplicationContext(), "Go to settings and enable permissions", Toast.LENGTH_LONG).show();
+    }
+
+    private void showDialogOK(Activity activity, String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(activity)
+                .setMessage(message)
+                .setPositiveButton("OK", okListener)
+                .setNegativeButton("Cancel", okListener)
+                .create()
+                .show();
+    }
+
+    public class statusArray {
+        statusArray(ArrayList<String> granted, ArrayList<String> denied) {
+            this.denied = denied;
+            this.granted = granted;
+        }
+
+        public ArrayList<String> granted;
+        public ArrayList<String> denied;
+    }
+
+    public interface PermissionListener {
+        void onGranted(String permission);
+
+        void onDenied(String permission);
+    }
 }
+
