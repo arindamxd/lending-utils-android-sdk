@@ -38,7 +38,7 @@ Add dependency to  HVLendingUtils SDK's maven repo.
 
 ```
 dependencies {
-    compile('co.hyperverge:hv-lending-utils:2.0.0@aar', {
+    compile('co.hyperverge:hv-lending-utils:2.0.1@aar', {
     	transitive=true
     })
 }
@@ -63,6 +63,15 @@ allprojects {
 ```
 
 Kindly contact HyperVerge at contact@hyperverge.co for getting your `aws_access_key` and `aws_secret_pass`.
+
+### App Permissions
+-  The SDK requires different permissions for different modules.
+
+1. Facebook Module: Camera
+2. SMS Module: Read SMS
+3. Contacts Module: Read Call Logs, Read SMS, Read Contacts
+
+Kindly note that for android v23 (Marshmallow) and above, you need to handle the runtime permissions inside your app.
 
 ### Using Details from Facebook
 
@@ -187,8 +196,6 @@ Depending on the permissions given by the user and information available in the 
 
 This sub-section explains the integration for verifying income and other details of the user from their SMSes. 
 
-**Please Note:** The parent app needs to take care of requesting the user's permission to read SMSes. 
-
 #### 1. Initiating SMS Processing
 
 `HVSMSManager` has a simple function to initiate processing of SMSes. The request takes in a `sourceList` parameter which determines the kind of messages to use. For example, specifying 'Bank' will check for Salaries and Transaction Amounts.  
@@ -260,8 +267,6 @@ The `onComplete` method has two parameters.
 
 ### Using Details from Contact Book
 This sub-section explains the integration for finding top contacts of the user for the purpose of collections or guarantee. 
-
-**Please Note:** The parent app needs to take care of requesting the user's permission to read Contacts. 
 
 #### 1. Initiating Contact Processing
 

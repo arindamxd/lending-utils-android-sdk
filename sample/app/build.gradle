@@ -24,7 +24,7 @@ dependencies {
         transitive = true
         exclude group: 'com.android.support'
     })
-    implementation('co.hyperverge:hv-lending-utils:2.0.0@aar', {
+    implementation('co.hyperverge:hv-lending-utils:2.0.1@aar', {
         transitive = true
         exclude group: 'com.android.support', module: 'appcompat'
     })
