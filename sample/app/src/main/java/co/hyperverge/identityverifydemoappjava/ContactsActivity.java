@@ -10,6 +10,7 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import co.hyperverge.hvroboutils.objects.HVContactConfig;
 import co.hyperverge.hvroboutils.objects.HVOperationError;
 import co.hyperverge.hvroboutils.objects.HVUtils;
 import co.hyperverge.hvroboutils.workflows.contacts.HVContactManager;
@@ -21,6 +22,10 @@ public class ContactsActivity extends AppCompatActivity {
     public final String TAG = getClass().getSimpleName();
     TextView textView;
     ProgressDialog dialog;
+
+    private final String appId = "";        //add the appId provided by HyperVerge here
+    private final String appKey = "";       //add the appKey provided by HyperVerge here
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +51,13 @@ public class ContactsActivity extends AppCompatActivity {
         dialog.setCancelable(false);
         dialog.show();
 
+        HVContactConfig hvContactConfig = new HVContactConfig();
+        String fullMatchNames[] = {"mom","dad"};
+        hvContactConfig.setFullMatchNames(fullMatchNames);
+        String partialMatchNames[] = {"\uD83D\uDE01", "\uD83D\uDE03"};
+        hvContactConfig.setPartialMatchNames(partialMatchNames);
 
-        HVContactManager.start(this, "", "", HVUtils.Countries.VIETNAM, new HVContactManager.HVContactCallback() {
+        HVContactManager.start(this, appId, appKey, HVUtils.Countries.VIETNAM, hvContactConfig, new HVContactManager.HVContactCallback() {
             @Override
             public void onComplete(HVOperationError error, JSONObject results) {
                 if (error == null) {
