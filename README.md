@@ -1,9 +1,8 @@
 
-  
 
 # HVLendingUtils Framework Documentation
 
-  
+
 ## Overview
 
 HVLendingUtils is HyperVerge's proprietary android Utilities Framework for banking and financial services industries. It has three modules.
@@ -11,20 +10,58 @@ HVLendingUtils is HyperVerge's proprietary android Utilities Framework for banki
 - **SMS Module** for verifying income and other details of the user from their SMSes.
 - **Contacts Module** for finding top contacts of the user for the purpose of collections or guarantee.
 
-## Requirements
+### Requirements
 
 - Gradle Version: 4.4 (Recommended)
 - Tested with Gradle Plugin for Android Studio - version 3.1.0
 - minSdkVersion 15
 - targetSdkVersion 27
 
+### ChangeLog
+
+You can find the ChangeLog in the [CHANGELOG.md](CHANGELOG.md) file
+
+## Table of contents
+
+- [Overview](#overview)
+	- [Requirements](#requirements)
+	- [ChangeLog](#changelog)
+- [Table of contents](#table-of-contents)
+- [Example Project](#example-project)
+- [Integration Steps](#integration-steps)
+	- [Adding the SDK to your project](#adding-the-sdk-to-your-project)
+	- [App Permissions](#app-permissions)
+	- [Using Details from Facebook](#using-details-from-facebook)
+		- [Setting up a Facebook App](#setting-up-a-facebook-app)
+		- [Launching the Activity](#launching-the-activity)
+			- [Parameters](#parameters)
+		- [Customizing HVFBActivity View](#customizing-hvfbactivity-view)
+		- [Completion Hook Payload Structure](#completion-hook-payload-structure)
+		- [Result Structure](#result-structure)
+	- [Using Details from SMS](#using-details-from-sms)
+		- [Initiating SMS Processing](#initiating-sms-processing)
+			- [Parameters](#parameters)
+		- [Result Structure](#result-structure)
+	- [Using Details from Contact Book](#using-details-from-contact-book)
+		- [Initiating Contact Processing](#initiating-contact-processing)
+			- [Parameters](#parameters)
+		- [Result Structure](#result-structure)
+			- [1. Starred Contacts](#1-starred-contacts)
+			- [2. Top Contacts](#2-top-contacts)
+			- [3. Special Contacts](#3-special-contacts)
+			- [4. Suspicion Validation](#4-suspicion-validation)
+		- [HVContactConfig](#hvcontactconfig)
+- [Error Codes](#error-codes)
+- [Contact Us](#contact-us)
+
+
 ## Example Project
 
-Please refer to the sample app provided in the repo to get an understanding of the implementation process. To run the app: 
+Please refer to the sample app provided in the repo to get an understanding of the implementation process. To run the app:
 
 - Clone/download the repo and open sample using latest version of Android Studio
 - Open project build.gradle and replace aws_access_key and aws_secret_pass with the credentials provided by HyperVerge
-- In `FBLoginActivity`, set the value of `appId` & `appKey` to the credentials provided by HyperVerge
+- In `FBLoginActivity` and `ContactsActivity` set the value of `appId` & `appKey` to the credentials provided by HyperVerge
 - Build and run the app
 
 ## Integration Steps
@@ -38,7 +75,7 @@ Add dependency to  HVLendingUtils SDK's maven repo.
 
 ```
 dependencies {
-    compile('co.hyperverge:hv-lending-utils:2.0.1@aar', {
+    compile('co.hyperverge:hv-lending-utils:2.1.0@aar', {
     	transitive=true
     })
 }
@@ -75,12 +112,12 @@ Kindly note that for android v23 (Marshmallow) and above, you need to handle the
 
 ### Using Details from Facebook
 
-This sub-section explains the integration for verifying authenticity of the user from their published details on Facebook. 
+This sub-section explains the integration for verifying authenticity of the user from their published details on Facebook.
 
-#### 1. Set up a Facebook App
+#### Setting up a Facebook App
 
 - Open the Facebook Apps dashboard : https://developers.facebook.com/apps
-- Click on the 'Add a new App' button 
+- Click on the 'Add a new App' button
 - Give the app name and email ID and create the app. You will be redirected to a new page
 - In the new page, select 'Settings' -> 'Basic' in the left navigation
 - Open your application's 'strings.xml' file and add these two lines. Replace '{your-app-id}' with the value found in the Facebook App dashboard
@@ -94,7 +131,7 @@ This sub-section explains the integration for verifying authenticity of the user
 - In a new tab, open 'https://developers.facebook.com/docs/facebook-login/android' and follow steps 5 and 6 from the page to add the App's bundle identifier, default class and key hashes to the Facebook App. Please note that steps other than 5 and 6 will be handled in the HVLendingUtils module.
 - Click Save Changes at the bottom of the App Dashboard window.
 
-#### 2. Launching the Activity  
+#### Launching the Activity  
 
 All interactions with the Facebook module and the corresponding HyperVerge server call for face match happens from an Activity called `HVFBActivity`.
 
@@ -126,14 +163,14 @@ These are the parameters to be set in `start` method:
 
 - appKey (String): Given by HyperVerge
 
-- HVFBCallback: It is a callback with one method - `onComplete`. It is called when the facebook login and our processing is successful or when an error has occured in either of the steps. The values of `error` and  `result` received by the callback determine whether the call was a success or failure.
+- HVFBCallback: It is a callback with one method - `onComplete`. It is called when the facebook login and our processing is successful or when an error has occurred in either of the steps. The values of `error` and  `result` received by the callback determine whether the call was a success or failure.
 
 The `onComplete` method has two parameters.
 
 - error: It is of type `HVOperationError`. It has an error code and an error message. The various error codes are described later. It is set to `null` if the whole process is successful.
 - result: It is of type `JSONObject`. It has results of the server call. It is `null` when there is an error. If the `completionHook` is set, the result would be an empty Json Object. Otherwise it contains the results of the profile verification. The result structure and the payload structure for the completion hook are discussed later.
 
-#### 3. Customizing HVFBActivity View
+#### Customizing HVFBActivity View
 
 `HVFBActivity` has a simple progress bar at the center of the view. If any customization is required, you could inherit this Activity and add your own UI elements to it and replace `HVFBActivity` in  the argument `HVFBActivity.class` with the subclass' name (all the other fields will be the same).
 
@@ -145,7 +182,7 @@ completionHook, appId, appKey, new HVFBActivity.HVFBCallback() {
 ```
 where `MyCustomActivity` is a subclass of `HVFBActivity`
 
-#### 4. Completion Hook Payload Structure
+#### Completion Hook Payload Structure
 If completionHook is passed with the start method, then a POST request with JSON payload will be made by the HyperVerge server to the hook url with the result of the Facebook profile verification and other profile information. The payload for this request will have following structure:
 
 ```
@@ -155,8 +192,8 @@ If completionHook is passed with the start method, then a POST request with JSON
 	"error": <Object, Has detail about the error. Present only in case statusCode is not 200>
 }
 ```
-  
-#### 5. Result Structure
+
+#### Result Structure
 The result JSON (returned by SDK/posted to completion hook) has the following format.
 
 ```
@@ -167,7 +204,7 @@ The result JSON (returned by SDK/posted to completion hook) has the following fo
         "id": <String - ID of the oldest matched image, exists only when time validation is passed>,
         "url": <String - URL of the above image>
         },
-        
+
     "info": {
         "firstImageActivity": <Number - Epoch time of the oldest image uploaded/tagged image of the user>,
         "id": <String, Facebook User ID>,
@@ -194,9 +231,9 @@ Depending on the permissions given by the user and information available in the 
 
 ### Using Details from SMS
 
-This sub-section explains the integration for verifying income and other details of the user from their SMSes. 
+This sub-section explains the integration for verifying income and other details of the user from their SMSes.
 
-#### 1. Initiating SMS Processing
+#### Initiating SMS Processing
 
 `HVSMSManager` has a simple function to initiate processing of SMSes. The request takes in a `sourceList` parameter which determines the kind of messages to use. For example, specifying 'Bank' will check for Salaries and Transaction Amounts.  
 
@@ -206,11 +243,11 @@ new HVSMSManager.HVSMSCallback() {
     @Override
     public void onComplete(HVOperationError error, JSONObject results){
         if (error == null) {
-            Log.e("HVSMSManager", "Success!");
+            Log.e("SMSManager", "Success!");
         } else {
-            Log.e("HVSMSManager", "Failure!");
+            Log.e("SMSManager", "Failure!");
         }
-    }	
+    }
 });
 ```
 
@@ -233,7 +270,7 @@ The `onComplete` method has two parameters.
 - error: It is of type `HVOperationError`. It has an error code and an error message. The various error codes are described later. It is set to `null` if the whole process is successful.
 - result: It is of type `JSONObject`. It has results of the processing. It is `null` when there is an error. The result structure is discussed below.
 
-#### 2. Result Structure
+#### Result Structure
 
 ```
 {
@@ -250,12 +287,12 @@ The `onComplete` method has two parameters.
             "institution-name" : "value",
             "account-identifier" : "value",
             "avg-monthly-balance" : value,
-            “min-monthly-balance” : value,
-            “max-monthly-balance” : value,
-            “transactions” : [
+            "min-monthly-balance" : value,
+            "max-monthly-balance" : value,
+            "transactions" : [
                 {
-                    “amount” : value,
-                    “debit-or-credit” : “value”
+                    "amount" : value,
+                    "debit-or-credit" : "value"
                 },
                 …
             ]    
@@ -266,23 +303,25 @@ The `onComplete` method has two parameters.
 ```
 
 ### Using Details from Contact Book
-This sub-section explains the integration for finding top contacts of the user for the purpose of collections or guarantee. 
+This sub-section explains the integration for finding top contacts of the user for the purpose of collections or guarantee.
 
-#### 1. Initiating Contact Processing
+#### Initiating Contact Processing
 
 `HVContactManager` has a start function to initiate processing of Top Contacts.   
 
 ```
-HVContactManager.start(this, appId, appKey, countryCode, 
+HVContactConfig hvContactConfig = new HVContactConfig();
+
+HVContactManager.start(this, appId, appKey, countryCode, hvContactConfig,
 new HVContactManager.HVContactCallback() {
     @Override
     public void onComplete(HVOperationError error, JSONObject results){
         if (error == null) {
-            Log.e("HVContactManager", "Success!");
+            Log.e("ContactManager", "Success!");
         } else {
-            Log.e("HVContactManager", "Failure!");
+            Log.e("ContactManager", "Failure!");
         }
-    }	
+    }
 });
 ```
 ##### Parameters
@@ -293,65 +332,164 @@ These are the parameters to be set in `start` method:
 
 - appKey (String): Given by HyperVerge
 
-- countryCode (String): Use `HVUtils.Countries.VIETNAM` for contacts in Vietnam, for example
+- countryCode (String): Use `HVUtils.Countries.VIETNAM` for contacts in Vietnam, for example.
 
-- HVContactCallback - It is a callback with one method - `onComplete`. It is called when the processing is successful or when an error has occured. The values of `error` and  `result` received by the callback determine whether the call was a success or failure.
+- hvContactConfig: Object of type `HVContactConfig`. This object has variables to be considered for `special-contacts` and `suspicion-validation` sections in the result - discussed in the next section.
+
+- HVContactCallback - It is a callback with one method - `onComplete`. It is called when the processing is successful or when an error has occurred. The values of `error` and  `result` received by the callback determine whether the call was a success or failure.
 
 The `onComplete` method has two parameters.
 
 - error: It is of type `HVOperationError`. It has an error code and an error message. The various error codes are described later. It is set to `null` if the whole process is successful.
-- result: It is of type `JSONObject`. It has results of the processing. It is `null` when there is an error. The result structure is discussed below.
+- result: It is of type `JSONObject`. It has results of the processing. It is `null` when there is an error. The result structure is discussed in the next section.
 
-#### 2. Result Structure
+#### Result Structure
 
 ```
 {
     "starred-contacts" : [
-    	{
-    		"name" : "value",
-    		"phone-number" : "value"
-    	}
-    	...
+        {
+                "name" : "value",
+                "phone-number" : "value",
+                "details" : "value"
+
+        }
+        ...
     ],
     "top-contacts" : {
-    	"incoming-calls" : [
-    		{
-    			"name" : "value",
-    			"phone-number" : "value"
-    		},
-    		...    	
-    	],
-    	"outgoing-calls" : [
-    		{
-    			"name" : "value",
-    			"phone-number" : "value"
-    		},
-    		...    	
-    	],
-    	"incoming-sms" : [
-    		{
-    			"name" : "value",
-    			"phone-number" : "value"
-    		},
-    		...    	
-    	],
-    	"outgoing-sms" : [
-    		{
-    			"name" : "value",
-    			"phone-number" : "value"
-    		},
-    		...    	
-    	],
-    	"overall" : [
-    		{
-    			"name" : "value",
-    			"phone-number" : "value"
-    		},
-    		...
-    	]
-    }
+        "incoming-calls-count" : [
+                {
+                        "name" : "value",
+                        "phone-number" : "value",
+                        "details" : "value"
+               },
+                ...     
+        ],
+        "incoming-calls-duration" : [
+                {
+                        "name" : "value",
+                        "phone-number" : "value",
+                        "details" : "value"
+               },
+                ...     
+        ],
+        "outgoing-calls-count" : [
+                {
+                        "name" : "value",
+                        "phone-number" : "value",
+                        "details" : "value"
+                },
+                ...     
+        ],
+        "outgoing-calls-duration" : [
+                {
+                        "name" : "value",
+                        "phone-number" : "value",
+                        "details" : "value"
+                },
+                ...     
+        ],
+        "incoming-sms" : [
+                {
+                        "name" : "value",
+                        "phone-number" : "value",
+                        "details" : "value"
+                },
+                ...     
+        ],
+        "outgoing-sms" : [
+                {
+                        "name" : "value",
+                        "phone-number" : "value",
+                        "details" : "value"
+                },
+                ...     
+        ],
+        "overall" : [        
+                {
+                        "name" : "value",
+                        "phone-number" : "value",
+                        "details" : "value"
+                },
+                ...
+        ]
+    },
+    "special-contacts" : [       
+        {
+                "name" : "value",
+                "phone-number" : "value",
+                "details" : "value"
+        },
+        ...
+    ],
+    "suspicion-validation" : [         
+        {
+                "number-of-contacts-check" : true,
+                "call-log-count-check": true,
+                "oldest-call-log-check" : true
+        }
+        ...
+    ],
+
 }
 ```
+
+The result has 4 sections:
+
+##### 1. Starred Contacts
+All the contacts starred by the user.
+
+
+##### 2. Top Contacts
+This section has 7 sub sections.
+- `overall`: Top 5 contacts based on an overall score assigned to each contact depending on incoming and outgoing calls, incoming and outgoing SMSes and some messaging apps.
+- `incoming-calls-count`, `outgoing-calls-count`: Top 5 contacts based on number of incoming/outgoing calls in the call history present in the device.
+- `incoming-calls-duration`, `outgoing-calls-duration`: Top 5 contacts based on total duration of incoming/outgoing calls in the call history present in the device.
+- `incoming-sms`,`outgoing-sms`: Top 5 contacts based on number of incoming/outgoing SMSes.
+
+##### 3. Special Contacts
+This list is created considering the following three variables in the `HVContactConfig` object.
+  1. `fullMatchNames` - Array of Strings(e.g.: mom, dad etc) - The SDK checks for contacts that match these values. Case and white space insensitive. By default its an empty array.
+  2. `partialMatchNames` - Array of Strings (e.g.: emojis) -  The SDK checks for contacts that contains these values. By default its an empty array.
+  3. `lastNameOfUser` - String. The SDK finds contacts that contains this last name. Default value of the string is null.
+
+  There is a cap of 10 contacts per sub category in this section.
+
+
+##### 4. Suspicion Validation
+This is a list of validations keys to check for suspicious customers. If the flag is true, there is no suspicion.
+- `number-of-contacts-check`: Checks if the number of contacts saved is over a threshold (default 20). It can be changed using `minContactsCount` in the `HVContactConfig` object.
+- `call-log-count-check`: Checks if the number of logs in the call history is over a threshold(default 50). It can be changed using `minCallLogCount` in the `HVContactConfig` object.
+- `oldest-call-log-check`: Checks if the oldest call found on the device is before a threshold number of day(default 30 days ago). It can be changed using `minOldestCallLog` in the `HVContactConfig` object.
+
+
+Each contact returned in the result has a `details` field associated with it. This is a JSON with information relevant to the corresponding section. In the top-contacts section, it is one of `times-contacted` (overall section), `incoming-calls-count`, `incoming-calls-duration`, `outgoing-calls-count`,  `outgoing-calls-duration`, `incoming-sms-count` or `outgoing-sms-count`. The `special-contacts` and `starred-contacts` sections have all these fields returned. Please note that the durations are in minutes.
+
+
+#### HVContactConfig
+
+As mentioned in the previous section, HVContactConfig has the following variables:
+
+  For Special Contacts:
+    `fullMatchNames` - array of Strings [default - empty]
+    `partialMatchNames` - array of Strings [default - empty]
+    `lastNameOfUser` - String [default - null]
+
+  For Suspicion Validation:
+    `minContactsCount` - Integer [default - 20]
+    `minCallLogCount` - Integer [default - 50]
+    `minOldestCallLog` - Integer (number of days) [default - 30]
+
+  These parameters can be set using the corresponding setters. Example,
+
+  ```
+  HVContactConfig config = new HVContactConfig();
+  String fullMatchNames[] = {"mom","dad"};
+  config.setFullMatchNames(fullMatchNames);
+  config.setMinContactsCount(30);
+  ```
+
+
 
 ## Error Codes
 
@@ -360,7 +498,7 @@ Descriptions of the error codes returned in the callback are given here.
 |Error Code|Description|Explanation|Action|
 |----------|-----------|-----------|------|
 |1|Input Error|Occurs when input provided to the framework is not correct.|Check if all the parameters provided are proper and as per the documentation|
-|2|Network Error|Occurs when the internet is either non-existant, very patchy or the call is taking too long to complete|Check internet and try again|
+|2|Network Error|Occurs when the internet is either non-existent, very patchy or the call is taking too long to complete|Check internet and try again|
 |3|Internal Server|Occurs when there is an internal error at the server|Notify HyperVerge|
 |4|Internal SDK Error|Occurs when an unexpected error has happened with the framework|Notify HyperVerge|
 |5|Invalid Image Path|Occurs when the image path sent to the framework is invalid|Validate the imageUri and retry|
@@ -369,7 +507,7 @@ Descriptions of the error codes returned in the callback are given here.
 |8|Android Permissions Not Granted|Occurs when one or more permissions required by the SDK are missing|Ask the user to give permissions and try again|
 |101|Inadequate FB Permissions|Occurs when the user has not provided minimum permissions(user_photos, public_profile) in Facebook login|Try Facebook login again|
 |102|Facebook login cancelled by user|Occurs when user clicks on the cancel button in the Facebook login page|Try again|
-|103|Facebook login failed|Occurs when error is returned by Facebook |Analyze the error message|
+|103|Facebook login failed|Occurs when error is returned by Facebook |Analyse the error message|
 
 ## Contact Us
-If you are interested in integrating this SDK, please do send us a mail at contact@hyperverge.co explaining your use case. We will give you the appId, appKey, aws\_access\_key & aws\_secret\_pass so that you can try it out.
+If you are interested in integrating this SDK, please do send us a mail at contact@hyperverge.co explaining your use case. We could give you the necessary credentials for a trail.
