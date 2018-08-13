@@ -14,3 +14,6 @@
   - 'incoming-calls-duration' and 'outgoing-calls-duration' subsections added to top-contacts
   - 'details' corresponding to each contact
 - Minor bug fixes
+
+### 2.1.1 - 08 August 2018
+- Minor bug fix

@@ -75,7 +75,7 @@ Add dependency to  HVLendingUtils SDK's maven repo.
 
 ```
 dependencies {
-    compile('co.hyperverge:hv-lending-utils:2.1.0@aar', {
+    compile('co.hyperverge:hv-lending-utils:2.1.1@aar', {
     	transitive=true
     })
 }
