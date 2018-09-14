@@ -21,8 +21,15 @@ allprojects {
         maven {
             url "s3://hvsdk/android/releases"
             credentials(AwsCredentials) {
-                accessKey "aws_access_key"
-                secretKey "aws_secret_pass"
+                accessKey "AKIAIIQJNVDGKVQWN62Q"
+                secretKey "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"
+            }
+        }
+        maven {
+            url "s3://hvsdk/android/snapshots"
+            credentials(AwsCredentials) {
+                accessKey "AKIAIIQJNVDGKVQWN62Q"
+                secretKey "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"
             }
         }
     }

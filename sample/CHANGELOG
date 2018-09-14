@@ -1,0 +1,7 @@
+2.2.0 [12 September 2018]
+- SMS Module - Added salaries and transactions extraction for Vietnamese banks.
+- SMS Module - Made upload SMS to S3 optional(false by default). Last 3 years of SMSes to be uploaded in batches of 6 months.
+
+2.0.0 [26 May 2018]
+- Contacts module added - categories overall, started, sms-incoming, sms-outgoing, incoming-calls, outgoing-calls
+- SMS module added - only uploads the SMSes. No processing yet.

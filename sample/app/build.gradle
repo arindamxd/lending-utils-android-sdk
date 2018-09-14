@@ -4,7 +4,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "co.hyperverge.identityverifydemoappjava"
+        applicationId "co.hyperverge.lendingutilssampleapp"
         minSdkVersion 19
         targetSdkVersion 27
         versionCode 1
@@ -24,10 +24,11 @@ dependencies {
         transitive = true
         exclude group: 'com.android.support'
     })
-    implementation('co.hyperverge:hv-lending-utils:2.1.1@aar', {
+    implementation('co.hyperverge:hv-lending-utils:2.2.0@aar', {
         transitive = true
         exclude group: 'com.android.support', module: 'appcompat'
     })
+
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:27.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">IdentityVerifyDemoAppJava</string>
+    <string name="app_name">LendingUtils</string>
     <string name="takeSelfie">Take Selfie</string>
     <string name="loginToFacebook">Login To Facebook</string>
     <string name="facebook_app_id">1510486372401953</string>

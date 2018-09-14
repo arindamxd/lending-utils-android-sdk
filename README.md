@@ -24,33 +24,33 @@ You can find the ChangeLog in the [CHANGELOG.md](CHANGELOG.md) file
 ## Table of contents
 
 - [Overview](#overview)
-	- [Requirements](#requirements)
-	- [ChangeLog](#changelog)
+- [Requirements](#requirements)
+- [ChangeLog](#changelog)
 - [Table of contents](#table-of-contents)
 - [Example Project](#example-project)
 - [Integration Steps](#integration-steps)
-	- [Adding the SDK to your project](#adding-the-sdk-to-your-project)
-	- [App Permissions](#app-permissions)
-	- [Using Details from Facebook](#using-details-from-facebook)
-		- [Setting up a Facebook App](#setting-up-a-facebook-app)
-		- [Launching the Activity](#launching-the-activity)
-			- [Parameters](#parameters)
-		- [Customizing HVFBActivity View](#customizing-hvfbactivity-view)
-		- [Completion Hook Payload Structure](#completion-hook-payload-structure)
-		- [Result Structure](#result-structure)
-	- [Using Details from SMS](#using-details-from-sms)
-		- [Initiating SMS Processing](#initiating-sms-processing)
-			- [Parameters](#parameters)
-		- [Result Structure](#result-structure)
-	- [Using Details from Contact Book](#using-details-from-contact-book)
-		- [Initiating Contact Processing](#initiating-contact-processing)
-			- [Parameters](#parameters)
-		- [Result Structure](#result-structure)
-			- [1. Starred Contacts](#1-starred-contacts)
-			- [2. Top Contacts](#2-top-contacts)
-			- [3. Special Contacts](#3-special-contacts)
-			- [4. Suspicion Validation](#4-suspicion-validation)
-		- [HVContactConfig](#hvcontactconfig)
+- [Adding the SDK to your project](#adding-the-sdk-to-your-project)
+- [App Permissions](#app-permissions)
+- [Using Details from Facebook](#using-details-from-facebook)
+	- [Setting up a Facebook App](#setting-up-a-facebook-app)
+	- [Launching the Activity](#launching-the-activity)
+		- [Parameters](#parameters)
+	- [Customizing HVFBActivity View](#customizing-hvfbactivity-view)
+	- [Completion Hook Payload Structure](#completion-hook-payload-structure)
+	- [Result Structure](#facebook-result-structure)
+- [Using Details from SMS](#using-details-from-sms)
+	- [Initiating SMS Processing](#initiating-sms-processing)
+		- [Parameters](#parameters)
+	- [Result Structure](#sms-result-structure)
+- [Using Details from Contact Book](#using-details-from-contact-book)
+	- [Initiating Contact Processing](#initiating-contact-processing)
+		- [Parameters](#parameters)
+	- [Result Structure](#contacts-result-structure)
+		- [1. Starred Contacts](#1-starred-contacts)
+		- [2. Top Contacts](#2-top-contacts)
+		- [3. Special Contacts](#3-special-contacts)
+		- [4. Suspicion Validation](#4-suspicion-validation)
+	- [HVContactConfig](#hvcontactconfig)
 - [Error Codes](#error-codes)
 - [Contact Us](#contact-us)
 
@@ -61,7 +61,7 @@ Please refer to the sample app provided in the repo to get an understanding of t
 
 - Clone/download the repo and open sample using latest version of Android Studio
 - Open project build.gradle and replace aws_access_key and aws_secret_pass with the credentials provided by HyperVerge
-- In `FBLoginActivity` and `ContactsActivity` set the value of `appId` & `appKey` to the credentials provided by HyperVerge
+- In `FBLoginActivity`, `SMSActivity` and `ContactsActivity` set the value of `appId` & `appKey` to the credentials provided by HyperVerge
 - Build and run the app
 
 ## Integration Steps
@@ -75,9 +75,9 @@ Add dependency to  HVLendingUtils SDK's maven repo.
 
 ```
 dependencies {
-    compile('co.hyperverge:hv-lending-utils:2.1.1@aar', {
-    	transitive=true
-    })
+	compile('co.hyperverge:hv-lending-utils:2.2.0@aar', {
+		transitive=true
+	})
 }
 
 ```
@@ -86,15 +86,15 @@ dependencies {
 
 ```
 allprojects {
-    repositories {
-        maven {
-            url "s3://hvsdk/android/releases"
-            credentials(AwsCredentials) {
-                accessKey aws_access_key
-                secretKey aws_secret_pass
-            }
-        }
-    }
+	repositories {
+			maven {
+					url "s3://hvsdk/android/releases"
+					credentials(AwsCredentials) {
+							accessKey aws_access_key
+							secretKey aws_secret_pass
+					}
+			}
+	}
 }
 
 ```
@@ -140,14 +140,14 @@ To launch the activity, call the `start` method of `HVFBActivity`(or its subclas
 ```
 HVFBActivity.start(this, HVFBActivity.class, imageUri, completionHook,
 appId,appKey, new HVFBActivity.HVFBCallback() {
-    @Override
-    public void onComplete(HVOperationError error, JSONObject results){
-        if (error == null) {
-            Log.e("HVFBActivity", "Success!");
-        } else {
-            Log.e("HVFBActivity", "Failure!");
-        }
-    }
+	@Override
+	public void onComplete(HVOperationError error, JSONObject results){
+			if (error == null) {
+					Log.e("HVFBActivity", "Success!");
+			} else {
+					Log.e("HVFBActivity", "Failure!");
+			}
+	}
 });
 ```
 
@@ -177,7 +177,7 @@ The `onComplete` method has two parameters.
 ```
 MyCustomActivity.start(this, MyCustomActivity.class, imageUri,
 completionHook, appId, appKey, new HVFBActivity.HVFBCallback() {
-	...
+...
 });
 ```
 where `MyCustomActivity` is a subclass of `HVFBActivity`
@@ -187,43 +187,43 @@ If completionHook is passed with the start method, then a POST request with JSON
 
 ```
 {
-	"statusCode": <Number, 200 if successful>,
-	"result": <Object, discussed in the next section. Will be present only in case of success>,
-	"error": <Object, Has detail about the error. Present only in case statusCode is not 200>
+"statusCode": <Number, 200 if successful>,
+"result": <Object, discussed in the next section. Will be present only in case of success>,
+"error": <Object, Has detail about the error. Present only in case statusCode is not 200>
 }
 ```
 
-#### Result Structure
+#### Result Structure  <a name="facebook-result-structure"></a>
 The result JSON (returned by SDK/posted to completion hook) has the following format.
 
 ```
 {
-    "matchedImage": {
-        "timeValidationPassed": <Boolean - digitally qualified profile>,
-        "createdTime": <Number - Epoch time of the oldest matched image, exists only when time validation is passed>,
-        "id": <String - ID of the oldest matched image, exists only when time validation is passed>,
-        "url": <String - URL of the above image>
-        },
+	"matchedImage": {
+			"timeValidationPassed": <Boolean - digitally qualified profile>,
+			"createdTime": <Number - Epoch time of the oldest matched image, exists only when time validation is passed>,
+			"id": <String - ID of the oldest matched image, exists only when time validation is passed>,
+			"url": <String - URL of the above image>
+			},
 
-    "info": {
-        "firstImageActivity": <Number - Epoch time of the oldest image uploaded/tagged image of the user>,
-        "id": <String, Facebook User ID>,
-        "name": <String>,
-	"last_name":<String>,
-	"short_name":<String>,
-	"is_verified":<0 or 1 - This field indicates whether the person's profile is verified manually by facebook>,
-	"verified":<0 or 1 - Indicates whether the account has been verified by the user via SMS etc>
-        "mostCoTaggedUsers": <Array of user objects who have been tagged in photos with this user the most>,
-	"tagged_places": <Dictionary with an array of few tagged places and corresponding paging to get rest of the tagged places>
-	"age_range": <Dictionary with minimum and maximum age of the user>
-	"birthday": <String>
-	"email":<String>
-	"friends:<Dictionary with an array of few friends(names and ids), corresponding paging to get rest of the friends and total friend count.
-	"gender":<String>
-	"hometown": <Dictionary with place id and name>
-	"location": <Dictionary with place id and name>
-        }
-    }
+	"info": {
+			"firstImageActivity": <Number - Epoch time of the oldest image uploaded/tagged image of the user>,
+			"id": <String, Facebook User ID>,
+			"name": <String>,
+"last_name":<String>,
+"short_name":<String>,
+"is_verified":<0 or 1 - This field indicates whether the person's profile is verified manually by facebook>,
+"verified":<0 or 1 - Indicates whether the account has been verified by the user via SMS etc>
+			"mostCoTaggedUsers": <Array of user objects who have been tagged in photos with this user the most>,
+"tagged_places": <Dictionary with an array of few tagged places and corresponding paging to get rest of the tagged places>
+"age_range": <Dictionary with minimum and maximum age of the user>
+"birthday": <String>
+"email":<String>
+"friends:<Dictionary with an array of few friends(names and ids), corresponding paging to get rest of the friends and total friend count.
+"gender":<String>
+"hometown": <Dictionary with place id and name>
+"location": <Dictionary with place id and name>
+			}
+	}
 }
 ```
 
@@ -235,19 +235,18 @@ This sub-section explains the integration for verifying income and other details
 
 #### Initiating SMS Processing
 
-`HVSMSManager` has a simple function to initiate processing of SMSes. The request takes in a `sourceList` parameter which determines the kind of messages to use. For example, specifying 'Bank' will check for Salaries and Transaction Amounts.  
-
+`HVSMSManager` has a simple function to initiate processing of SMSes.
 ```
-HVSMSManager.start(this, sourceList, appId, appKey, countryCode,
+HVSMSManager.start(this, appId, appKey, hvsmsConfig,
 new HVSMSManager.HVSMSCallback() {
-    @Override
-    public void onComplete(HVOperationError error, JSONObject results){
-        if (error == null) {
-            Log.e("SMSManager", "Success!");
-        } else {
-            Log.e("SMSManager", "Failure!");
-        }
-    }
+	@Override
+	public void onComplete(HVOperationError error, JSONObject results){
+			if (error == null) {
+					Log.e("SMSManager", "Success!");
+			} else {
+					Log.e("SMSManager", "Failure!");
+			}
+	}
 });
 ```
 
@@ -255,50 +254,55 @@ new HVSMSManager.HVSMSCallback() {
 
 These are the parameters to be set in `start` method:
 
-- countryCode (String): Use `HVUtils.Countries.VIETNAM` for reading messages in Vietnam, for example
-
-- sourceList (ArrayList\<String\>): List of sources such as Bank, Insurance, Telco, etc. Currently supports only `HVSMSManager.Sources.Bank`
-
 - appId (String): Given by HyperVerge
 
 - appKey (String): Given by HyperVerge
 
-- HVSMSCallback - It is a callback with one method - `onComplete`. It is called when the processing is successful or when an error has occured. The values of `error` and  `result` received by the callback determine whether the call was a success or failure.
+- hvSMSConfig (Object of type HVSMSConfig): This object has the following variables :
+- sourceList (Array of Strings): Type of messages that should be considered. Eg.: Bank, Insurance, Telco, etc. The SDK currently supports only `HVSMSManager.Sources.Bank`. Default value of the array is `{HVSMSManager.Sources.Bank}`
+- numberOfMonths (Integer): Number of months to be considered for processing. Default value is 12 months.
+- country (String): Country of the user. Default value is `HVUtils.Countries.Vietnam`
+
+- HVSMSCallback - It is a callback with one method - `onComplete`. It is called when the processing is successful or when an error has occurred. The values of `error` and  `result` received by the callback determine whether the call was a success or failure.
 
 The `onComplete` method has two parameters.
 
 - error: It is of type `HVOperationError`. It has an error code and an error message. The various error codes are described later. It is set to `null` if the whole process is successful.
 - result: It is of type `JSONObject`. It has results of the processing. It is `null` when there is an error. The result structure is discussed below.
 
-#### Result Structure
+#### Result Structure <a name="sms-result-structure"></a>
 
 ```
 {
-    "sourcelist" : ["bank"],
-    "salaries" : [
-        {
-            "salary-amount" : value,
-            "salary-date" : value
-        },
-        …
-    ],
-    "accounts" : [
-        {
-            "institution-name" : "value",
-            "account-identifier" : "value",
-            "avg-monthly-balance" : value,
-            "min-monthly-balance" : value,
-            "max-monthly-balance" : value,
-            "transactions" : [
-                {
-                    "amount" : value,
-                    "debit-or-credit" : "value"
-                },
-                …
-            ]    
-        },
-        …
-    ]
+	"sourcelist" : ["bank"],
+	"salaries" : [
+			{
+					"amount" : <long - Value in corresponding currency eg:VND, INR>,
+					"time" : <String - Milliseconds since The Epoch>,
+					"bank-name" : <Sring - Name of the bank>
+			},
+			…
+	],
+	"accounts" : [
+			{
+					"bank-name" : <String - Name of the bank>,
+					"account-identifier" : <String - Unique identifier for the account>,
+					"global-min-balance" : <long - Lowest balance in the time period>,
+					"global-max-balance" : <long - Highest balance in the time period>,
+					"avg-min-monthly-balance" : <long - Average of minimum monthly balances in the time period>,
+					"avg-max-monthly-balance" : <long - Average of maximum monthly balances in the time period>,
+					"transactions" : [
+							{
+									"amount" : <long - Value in corresponding currency eg:VND, INR>,
+									"debit-or-credit" : <String - 'debit' or 'credit'>,
+									"time" : <String - Milliseconds since The Epoch>,
+									"closing-balance" : <long - Account balance after the transaction>
+							},
+							…
+					]    
+			},
+			…
+	]
 }
 ```
 
@@ -314,14 +318,14 @@ HVContactConfig hvContactConfig = new HVContactConfig();
 
 HVContactManager.start(this, appId, appKey, countryCode, hvContactConfig,
 new HVContactManager.HVContactCallback() {
-    @Override
-    public void onComplete(HVOperationError error, JSONObject results){
-        if (error == null) {
-            Log.e("ContactManager", "Success!");
-        } else {
-            Log.e("ContactManager", "Failure!");
-        }
-    }
+	@Override
+	public void onComplete(HVOperationError error, JSONObject results){
+			if (error == null) {
+					Log.e("ContactManager", "Success!");
+			} else {
+					Log.e("ContactManager", "Failure!");
+			}
+	}
 });
 ```
 ##### Parameters
@@ -343,93 +347,93 @@ The `onComplete` method has two parameters.
 - error: It is of type `HVOperationError`. It has an error code and an error message. The various error codes are described later. It is set to `null` if the whole process is successful.
 - result: It is of type `JSONObject`. It has results of the processing. It is `null` when there is an error. The result structure is discussed in the next section.
 
-#### Result Structure
+#### Result Structure <a name="contacts-result-structure"></a>
 
 ```
 {
-    "starred-contacts" : [
-        {
-                "name" : "value",
-                "phone-number" : "value",
-                "details" : "value"
+	"starred-contacts" : [
+			{
+							"name" : "value",
+							"phone-number" : "value",
+							"details" : "value"
 
-        }
-        ...
-    ],
-    "top-contacts" : {
-        "incoming-calls-count" : [
-                {
-                        "name" : "value",
-                        "phone-number" : "value",
-                        "details" : "value"
-               },
-                ...     
-        ],
-        "incoming-calls-duration" : [
-                {
-                        "name" : "value",
-                        "phone-number" : "value",
-                        "details" : "value"
-               },
-                ...     
-        ],
-        "outgoing-calls-count" : [
-                {
-                        "name" : "value",
-                        "phone-number" : "value",
-                        "details" : "value"
-                },
-                ...     
-        ],
-        "outgoing-calls-duration" : [
-                {
-                        "name" : "value",
-                        "phone-number" : "value",
-                        "details" : "value"
-                },
-                ...     
-        ],
-        "incoming-sms" : [
-                {
-                        "name" : "value",
-                        "phone-number" : "value",
-                        "details" : "value"
-                },
-                ...     
-        ],
-        "outgoing-sms" : [
-                {
-                        "name" : "value",
-                        "phone-number" : "value",
-                        "details" : "value"
-                },
-                ...     
-        ],
-        "overall" : [        
-                {
-                        "name" : "value",
-                        "phone-number" : "value",
-                        "details" : "value"
-                },
-                ...
-        ]
-    },
-    "special-contacts" : [       
-        {
-                "name" : "value",
-                "phone-number" : "value",
-                "details" : "value"
-        },
-        ...
-    ],
-    "suspicion-validation" : [         
-        {
-                "number-of-contacts-check" : true,
-                "call-log-count-check": true,
-                "oldest-call-log-check" : true
-        }
-        ...
-    ],
+			}
+			...
+	],
+	"top-contacts" : {
+			"incoming-calls-count" : [
+							{
+											"name" : "value",
+											"phone-number" : "value",
+											"details" : "value"
+						 },
+							...     
+			],
+			"incoming-calls-duration" : [
+							{
+											"name" : "value",
+											"phone-number" : "value",
+											"details" : "value"
+						 },
+							...     
+			],
+			"outgoing-calls-count" : [
+							{
+											"name" : "value",
+											"phone-number" : "value",
+											"details" : "value"
+							},
+							...     
+			],
+			"outgoing-calls-duration" : [
+							{
+											"name" : "value",
+											"phone-number" : "value",
+											"details" : "value"
+							},
+							...     
+			],
+			"incoming-sms" : [
+							{
+											"name" : "value",
+											"phone-number" : "value",
+											"details" : "value"
+							},
+							...     
+			],
+			"outgoing-sms" : [
+							{
+											"name" : "value",
+											"phone-number" : "value",
+											"details" : "value"
+							},
+							...     
+			],
+			"overall" : [        
+							{
+											"name" : "value",
+											"phone-number" : "value",
+											"details" : "value"
+							},
+							...
+			]
+	},
+	"special-contacts" : [       
+			{
+							"name" : "value",
+							"phone-number" : "value",
+							"details" : "value"
+			},
+			...
+	],
+	"suspicion-validation" : [         
+			{
+							"number-of-contacts-check" : true,
+							"call-log-count-check": true,
+							"oldest-call-log-check" : true
+			}
+			...
+	],
 
 }
 ```
@@ -449,11 +453,11 @@ This section has 7 sub sections.
 
 ##### 3. Special Contacts
 This list is created considering the following three variables in the `HVContactConfig` object.
-  1. `fullMatchNames` - Array of Strings(e.g.: mom, dad etc) - The SDK checks for contacts that match these values. Case and white space insensitive. By default its an empty array.
-  2. `partialMatchNames` - Array of Strings (e.g.: emojis) -  The SDK checks for contacts that contains these values. By default its an empty array.
-  3. `lastNameOfUser` - String. The SDK finds contacts that contains this last name. Default value of the string is null.
+1. `fullMatchNames` - Array of Strings(e.g.: mom, dad etc) - The SDK checks for contacts that match these values. Case and white space insensitive. By default its an empty array.
+2. `partialMatchNames` - Array of Strings (e.g.: emojis) -  The SDK checks for contacts that contains these values. By default its an empty array.
+3. `lastNameOfUser` - String. The SDK finds contacts that contains this last name. Default value of the string is null.
 
-  There is a cap of 10 contacts per sub category in this section.
+There is a cap of 10 contacts per sub category in this section.
 
 
 ##### 4. Suspicion Validation
@@ -470,24 +474,24 @@ Each contact returned in the result has a `details` field associated with it. Th
 
 As mentioned in the previous section, HVContactConfig has the following variables:
 
-  For Special Contacts:
-    `fullMatchNames` - array of Strings [default - empty]
-    `partialMatchNames` - array of Strings [default - empty]
-    `lastNameOfUser` - String [default - null]
+For Special Contacts:
+	`fullMatchNames` - array of Strings [default - empty]
+	`partialMatchNames` - array of Strings [default - empty]
+	`lastNameOfUser` - String [default - null]
 
-  For Suspicion Validation:
-    `minContactsCount` - Integer [default - 20]
-    `minCallLogCount` - Integer [default - 50]
-    `minOldestCallLog` - Integer (number of days) [default - 30]
+For Suspicion Validation:
+	`minContactsCount` - Integer [default - 20]
+	`minCallLogCount` - Integer [default - 50]
+	`minOldestCallLog` - Integer (number of days) [default - 30]
 
-  These parameters can be set using the corresponding setters. Example,
+These parameters can be set using the corresponding setters. Example,
 
-  ```
-  HVContactConfig config = new HVContactConfig();
-  String fullMatchNames[] = {"mom","dad"};
-  config.setFullMatchNames(fullMatchNames);
-  config.setMinContactsCount(30);
-  ```
+```
+HVContactConfig config = new HVContactConfig();
+String fullMatchNames[] = {"mom","dad"};
+config.setFullMatchNames(fullMatchNames);
+config.setMinContactsCount(30);
+```
 
 
 
