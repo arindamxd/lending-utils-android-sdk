@@ -275,7 +275,7 @@ The `onComplete` method has two parameters.
 ```
 {
     "sourcelist" : ["bank"],
-    "time
+    "timeperiod" : <Integer - Number of months considered for processing>
     "salaries" : [
         {
             "amount" : <long - Value in corresponding currency eg:VND, INR>,
